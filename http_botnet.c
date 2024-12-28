@@ -59,7 +59,9 @@ int main() {
             //     ;
             // }
         } else if (strcmp(cmd_buff, "stop") == 0){
-            break;
+            printf("Stopping attack...\n");
+            // closeSocket(server_socket);
+            // break;
         }
     }
 
@@ -142,8 +144,11 @@ void sendMsg(SOCKET socket, const char *msg) {
 
 // function to close the socket and clean up the resources that are no longer being used
 void closeSocket(SOCKET socket) {
-    closesocket(socket);
-    WSACleanup();
+    int stat1 = closesocket(socket);
+    int stat2 = WSACleanup();
+    if (stat1 == 0 && stat2 == 0 ){
+        printf("Connection closed. \n");
+    }
 }
 
 void receiveCommand(SOCKET client_socket, char *cmd){
