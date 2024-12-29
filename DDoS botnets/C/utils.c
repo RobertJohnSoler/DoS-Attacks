@@ -30,7 +30,7 @@ DWORD WINAPI attack(LPVOID addr){
             break;
         }
     }
-    closeSocket(target_socket);
+    // closeSocket(target_socket);
     return 0;
 }
 

