@@ -2,11 +2,12 @@ import socket
 import threading
 from threading import Event
 from time import sleep
+from webserver import runServer
 
 active_connections_lock = threading.Lock()
 active_connections = 0
 
-# event that can be used to tell all threads to stop running
+# event that can be used to tell all threads to stop running or attacking
 stop_event = threading.Event() 
 run_attack = threading.Event()
 
@@ -78,6 +79,10 @@ if __name__ == "__main__":
     acceptor_thread = threading.Thread(target=acceptor, args=(s,))
     acceptor_thread.start()
 
+    # thread for starting the flask webserver
+    flask_thread = threading.Thread(target=runServer ,daemon=True)
+    flask_thread.start()
+
     try:
         # as long as the socket is running and the stop event is not set, keep accepting client connections
         while s and not stop_event.is_set():
@@ -91,12 +96,12 @@ if __name__ == "__main__":
                         run_attack.clear()
                 else:
                     print("Waiting for connection...", end='\r', flush=True)
-            
-            
+                        
     except KeyboardInterrupt:
         # clean everything up once the user presses ctrl+c
         stop_event.set()
         acceptor_thread.join()
+        # flask_thread.join()
         print("")
         print("Closing socket...")
         s.close()
