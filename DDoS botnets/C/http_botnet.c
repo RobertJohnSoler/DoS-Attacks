@@ -50,7 +50,7 @@ int main() {
             printf("Stopping attack...\n");
             WaitForMultipleObjects(NUM_THREADS, attack_threads, TRUE, 10000);
             for (int i=0; i<NUM_THREADS; i++){
-                closeHandle(attack_threads[i]);
+                CloseHandle(attack_threads[i]);
             }
             // closeSocket(server_socket);
             // break;
