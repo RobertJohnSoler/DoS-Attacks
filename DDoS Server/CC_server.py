@@ -9,7 +9,7 @@ active_connections = 0
 
 # event that can be used to tell all threads to stop running or attacking
 stop_event = threading.Event() 
-run_attack = threading.Event()
+command = None
 
 
 def acceptor(s: socket.socket):
@@ -44,14 +44,12 @@ def handle_client(conn: socket.socket, addr):
             print("")
             print("Client must have disconnected:", addr)
             break
-        if run_attack.is_set() and state != "attacking":
+        if command == "start" and state != "attacking":
             state = "attacking"
-            command = "start"
             print("command is ", command.encode())
             conn.send(command.encode())
-        elif (not run_attack.is_set()) and state == "attacking":
+        elif command == "stop" and state == "attacking":
             state = "stopped"
-            command = "stop"
             print("command is ", command.encode())
             conn.send(command.encode())
 
@@ -88,10 +86,10 @@ if __name__ == "__main__":
             if active_connections > 0:
                 sleep(1)
                 command = input("> ")
-                if command == "start":
-                    run_attack.set()
-                elif command == "stop":
-                    run_attack.clear()
+                # if command == "start":
+                #     run_attack.set()
+                # elif command == "stop":
+                #     run_attack.clear()
             else:
                 print("Waiting for connection...", end='\r', flush=True)
                         
