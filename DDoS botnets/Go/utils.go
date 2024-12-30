@@ -10,6 +10,8 @@ type address struct {
 	port string
 }
 
+var NUM_THREADS int = 10
+
 // function to attack
 func attack(target_addr address) {
 	target := target_addr.ip + ":" + target_addr.port

