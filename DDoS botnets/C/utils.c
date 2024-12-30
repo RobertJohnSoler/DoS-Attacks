@@ -44,15 +44,15 @@ void startWinsock(WSADATA *wsaData) {
 
 // function to start the socket and handles errors
 SOCKET startSocket() {
-    SOCKET client_socket = socket(AF_INET, SOCK_STREAM, 0);
-    if (client_socket < 0) {
+    SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock < 0) {
         printf("\n Socket creation error \n");
         WSACleanup();
         exit(EXIT_FAILURE);
     } else {
         printf("Socket created. \n");
     }
-    return client_socket;
+    return sock;
 }
 
 // function to connect this client to the server via socket
@@ -93,8 +93,8 @@ void closeSocket(SOCKET socket) {
     }
 }
 
-void receiveCommand(SOCKET client_socket, char *cmd){
-    int received = recv(client_socket, cmd, 1024, 0);
+void receiveCommand(SOCKET server_socket, char *cmd){
+    int received = recv(server_socket, cmd, 1024, 0);
     if (received < 1){
         printf("Error receiving message.\n");
     }
