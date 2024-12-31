@@ -5,8 +5,7 @@
 #include <ws2tcpip.h>
 #include <windows.h>
 #include <winuser.h>
-
-#define NUM_THREADS 10
+#include <assert.h>
 
 extern volatile int running;
 

