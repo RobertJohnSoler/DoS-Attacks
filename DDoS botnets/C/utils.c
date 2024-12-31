@@ -93,9 +93,56 @@ void closeSocket(SOCKET socket) {
     }
 }
 
+// function to receive commands
 void receiveCommand(SOCKET server_socket, char *cmd){
     int received = recv(server_socket, cmd, 1024, 0);
     if (received < 1){
         printf("Error receiving message.\n");
     }
+}
+
+// got this neat function from here:
+// https://stackoverflow.com/questions/9210528/split-string-with-delimiters-in-c
+char** split(char* str, const char d){
+    char** result    = 0;
+    int count        = 0;
+    char* tmp        = str;
+    char* last_comma = 0;
+    char delim[2];
+    delim[0] = d;
+    delim[1] = 0;
+
+    /* Count how many elements will be extracted. */
+    while (*tmp){
+        if (d == *tmp)
+        {
+            count++;
+            last_comma = tmp;
+        }
+        tmp++;
+    }
+
+    /* Add space for trailing token. */
+    count += last_comma < (str + strlen(str) - 1);
+
+    /* Add space for terminating null string so caller
+       knows where the list of returned strings ends. */
+    count++;
+
+    result = (char**) malloc(sizeof(char*) * count);
+
+    if (result){
+        size_t idx  = 0;
+        char* token = strtok(str, delim);
+
+        while (token){
+            assert(idx < count);
+            *(result + idx++) = strdup(token);
+            token = strtok(0, delim);
+        }
+        assert(idx == count - 1);
+        *(result + idx) = 0;
+    }
+
+    return result;
 }

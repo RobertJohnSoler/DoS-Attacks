@@ -22,3 +22,4 @@ void sendMsg(SOCKET client_socket, const char *msg);
 void closeSocket(SOCKET client_socket);
 DWORD WINAPI attack(LPVOID target_ip);
 void receiveCommand(SOCKET client_socket, char *cmd);
+char** split(char* str, const char d);

