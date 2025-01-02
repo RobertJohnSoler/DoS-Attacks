@@ -57,22 +57,24 @@ SOCKET startSocket() {
 }
 
 // function to connect this client to the server via socket
-void connectSocket(struct sockaddr_in *addr, SOCKET socket, const char* ip) {
-
+int connectSocket(struct sockaddr_in *addr, SOCKET socket, const char* ip) {
+    
     if (inet_pton(AF_INET, ip, &addr->sin_addr) <= 0) {
         printf("\nInvalid address/ Address not supported \n");
         closesocket(socket);
         WSACleanup();
-        exit(EXIT_FAILURE);
+        return 0;
     } else if (connect(socket, (struct sockaddr *)addr, sizeof(*addr)) < 0) {
         printf("\nConnection Failed. \n");
         printf("%i", socket);
         closesocket(socket);
         WSACleanup();
-        exit(EXIT_FAILURE);
-    } else{
+        return 0;
+    } else {
         printf("Connection successful.\n");
+        return 1;
     }
+    return 1;
 }
 
 // function to send message via socket connection
