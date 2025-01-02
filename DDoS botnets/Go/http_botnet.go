@@ -3,8 +3,10 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"net"
 	"strings"
 	"sync"
+	"time"
 )
 
 var running int
@@ -22,7 +24,16 @@ func main() {
 
 	// connect server socket
 	fmt.Println("Connecting to server...")
-	server_socket := connectSocket(server_addr)
+	var server_socket net.Conn
+	for {
+		server_socket = connectSocket(server_addr)
+		if server_socket == nil {
+			fmt.Println("Waiting for connection")
+			time.Sleep(time.Second)
+		} else {
+			break
+		}
+	}
 
 	// infinite loop
 	for {
