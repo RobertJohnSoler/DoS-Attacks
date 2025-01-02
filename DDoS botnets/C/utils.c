@@ -65,10 +65,9 @@ int connectSocket(struct sockaddr_in *addr, SOCKET socket, const char* ip) {
         WSACleanup();
         return 0;
     } else if (connect(socket, (struct sockaddr *)addr, sizeof(*addr)) < 0) {
-        printf("\nConnection Failed. \n");
-        printf("%i", socket);
-        closesocket(socket);
-        WSACleanup();
+        printf("Connection Failed. \n");
+        // closesocket(socket);
+        // WSACleanup();
         return 0;
     } else {
         printf("Connection successful.\n");
