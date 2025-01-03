@@ -89,7 +89,7 @@ def getAttackDetails():
     print(conn_dict)
     for key, val in conn_dict.items():
         print("wtf?", key, val)
-        conn_list.append({key:val})
+        conn_list.append({"connection":key, "state":val})
     for key, val in conn_dict.items():
         if val == "attacking":
             is_attacking = True

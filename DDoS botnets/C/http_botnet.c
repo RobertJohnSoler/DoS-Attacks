@@ -8,7 +8,7 @@
 #include "utils.h"
 
 #define TARGET_IP ""        // control server IP here
-#define SERVER_IP "127.0.0.1"        // target IP here
+#define SERVER_IP ""        // target IP here
 #define NUM_THREADS 20
 
 volatile int running = 0;

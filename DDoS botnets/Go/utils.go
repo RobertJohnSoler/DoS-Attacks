@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-var NUM_THREADS int = 50
+var NUM_THREADS int = 10
 
 // function to attack
 func attack(target string) {
