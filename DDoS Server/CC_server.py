@@ -30,7 +30,6 @@ def acceptor(s: socket.socket):
             client_thread.start()
             with conn_dict_lock:
                 conn_dict[conn_name] = "stopped"
-            print(conn_dict)
         except socket.timeout:  
             # use periodic time outs to check if the user has pressed ctrl+c, 
             # because accept() is a blocking call and it keeps ctrl+c in the queue until it a connection finally comes in
@@ -90,9 +89,7 @@ def getAttackDetails():
     conn_list = []
     is_attacking = False
     state = "Idle"
-    print(conn_dict)
     for key, val in conn_dict.items():
-        print("wtf?", key, val)
         conn_list.append({"connection":key, "state":val})
     for key, val in conn_dict.items():
         if val == "attacking":
@@ -109,7 +106,6 @@ def setCommand(cmd: str):
     command = cmd
     if command.split(' ')[0] == "target":
         target = command.split(' ')[1]
-        print(command.split(' ')[0])
     ret_msg = "Command set to", command
     return ret_msg
 
