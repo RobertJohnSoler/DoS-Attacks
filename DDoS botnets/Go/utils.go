@@ -6,8 +6,6 @@ import (
 	"strings"
 )
 
-var NUM_THREADS int = 10
-
 // function to attack
 func attack(target string) {
 	target_socket := connectSocket(target)

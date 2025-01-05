@@ -10,6 +10,7 @@ import (
 )
 
 var running int
+var NUM_THREADS int = 10
 
 const TARGET_IP = ""          // target IP here
 const SERVER_IP = "127.0.0.1" // control server IP here
