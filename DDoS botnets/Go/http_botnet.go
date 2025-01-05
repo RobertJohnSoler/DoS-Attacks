@@ -48,9 +48,9 @@ func main() {
 		} else if cmd_arg1 == "start" {
 			fmt.Println("Executing attack...")
 			running = 1
-			// for i := 0; i < NUM_THREADS; i++ {
-			// 	go attack(target)
-			// }
+			for i := 0; i < NUM_THREADS; i++ {
+				go attack(target)
+			}
 		} else if cmd_arg1 == "stop" {
 			running = 0
 			fmt.Println("Stopping attack...")
